@@ -12,7 +12,9 @@ from .model import LinearRegressionGD, build_training_data, segment_features
 from .zones import apply_quantile_zone_refinement, classify_pace_zone, summarize_zones
 
 
-def run_backend(gpx_path: Path, weight_lbs: float, max_speed_mph: float, out_dir: Path) -> None:
+def run_backend_job(
+    gpx_path: Path, weight_lbs: float, max_speed_mph: float, out_dir: Path
+) -> dict[str, float | int | str | Path]:
     if weight_lbs <= 0:
         raise ValueError("weight-lbs must be positive.")
     if max_speed_mph <= 0:
@@ -80,6 +82,37 @@ def run_backend(gpx_path: Path, weight_lbs: float, max_speed_mph: float, out_dir
     write_csv(csv_path, segment_rows)
     write_geojson(geojson_path, segment_rows)
     write_html_map(html_path, geojson_path.name, title=title)
+
+    return {
+        "title": title,
+        "gpx_path": gpx_path,
+        "weight_lbs": weight_lbs,
+        "max_speed_mph": max_speed_mph,
+        "total_distance_m": total_distance,
+        "total_gain_m": total_gain,
+        "avg_speed_mph": avg_speed,
+        "segment_count": len(segment_rows),
+        "slowdown_count": slowdown_count,
+        "speedup_count": speedup_count,
+        "zones_count": len(zones),
+        "csv_path": csv_path,
+        "geojson_path": geojson_path,
+        "html_path": html_path,
+    }
+
+
+def run_backend(gpx_path: Path, weight_lbs: float, max_speed_mph: float, out_dir: Path) -> None:
+    result = run_backend_job(gpx_path, weight_lbs, max_speed_mph, out_dir)
+    title = str(result["title"])
+    total_distance = float(result["total_distance_m"])
+    total_gain = float(result["total_gain_m"])
+    avg_speed = float(result["avg_speed_mph"])
+    segment_count = int(result["segment_count"])
+    slowdown_count = int(result["slowdown_count"])
+    speedup_count = int(result["speedup_count"])
+    csv_path = Path(result["csv_path"])
+    geojson_path = Path(result["geojson_path"])
+    html_path = Path(result["html_path"])
 
     print("=" * 62)
     print("Elevation-Aware Hiking Optimization (Backend CLI)")
