@@ -67,3 +67,8 @@ Render injects `PORT` automatically; `app.py` is already configured for that.
 - `hiking_optimizer/model.py`: feature engineering + regression model training/prediction
 - `hiking_optimizer/zones.py`: pace-zone classification + summarization
 - `hiking_optimizer/exporters.py`: CSV / GeoJSON / HTML map writers
+- `hiking_optimizer/pace_model.json`: cached fitted regression (weights + scaler + baseline); loaded on every run instead of retraining
+
+### Pace model cache
+
+Training runs once to produce `hiking_optimizer/pace_model.json`, then subsequent CLI and web requests load that file. If the file is missing, invalid, or out of date, the code retrains and overwrites it. After changing synthetic training data, features, or optimizer hyperparameters in `hiking_optimizer/model.py`, bump `PACE_MODEL_SPEC_VERSION` so old caches are ignored.

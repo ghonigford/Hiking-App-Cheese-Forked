@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import statistics
 from pathlib import Path
 
 from .constants import METERS_TO_FEET, METERS_TO_MILES
 from .exporters import write_csv, write_geojson, write_html_map
 from .gpx_parser import build_segments, gpx_title, parse_gpx_points
-from .model import LinearRegressionGD, build_training_data, segment_features
+from .model import load_or_train_pace_model, segment_features
 from .zones import apply_quantile_zone_refinement, classify_pace_zone, summarize_zones
 
 
@@ -24,10 +23,7 @@ def run_backend_job(
     points = parse_gpx_points(gpx_path)
     segments = build_segments(points)
 
-    train_x, train_y = build_training_data()
-    model = LinearRegressionGD(learning_rate=0.006, epochs=3200)
-    model.fit(train_x, train_y)
-    baseline = statistics.mean(train_y)
+    model, baseline = load_or_train_pace_model()
 
     segment_rows: list[dict[str, float | str]] = []
     total_distance = 0.0
@@ -95,6 +91,7 @@ def run_backend_job(
         "slowdown_count": slowdown_count,
         "speedup_count": speedup_count,
         "zones_count": len(zones),
+        "zones": zones,
         "csv_path": csv_path,
         "geojson_path": geojson_path,
         "html_path": html_path,
@@ -113,6 +110,7 @@ def run_backend(gpx_path: Path, weight_lbs: float, max_speed_mph: float, out_dir
     csv_path = Path(result["csv_path"])
     geojson_path = Path(result["geojson_path"])
     html_path = Path(result["html_path"])
+    zones = result["zones"]
 
     print("=" * 62)
     print("Elevation-Aware Hiking Optimization (Backend CLI)")
@@ -124,7 +122,7 @@ def run_backend(gpx_path: Path, weight_lbs: float, max_speed_mph: float, out_dir
     print(f"Total distance:        {total_distance * METERS_TO_MILES:.2f} mi")
     print(f"Total elevation gain:  {total_gain:,.0f} m / {total_gain * METERS_TO_FEET:,.0f} ft")
     print(f"Recommended avg speed: {avg_speed:.2f} mph")
-    print(f"Segment count:         {len(segment_rows)}")
+    print(f"Segment count:         {segment_count}")
     print(f"Slowdown segments:     {slowdown_count}")
     print(f"Speed-up segments:     {speedup_count}")
     print()
