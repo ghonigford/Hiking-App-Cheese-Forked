@@ -16,7 +16,10 @@ From the project root:
 
 ```bash
 pip install -r requirements.txt
+playwright install chromium
 ```
+
+The web UI can export the pace map as PDF using [Playwright](https://playwright.dev/python/); Chromium must be installed once via `playwright install chromium`.
 
 ## Run Web App Locally
 
@@ -25,6 +28,10 @@ python app.py
 ```
 
 Then open [http://localhost:5000](http://localhost:5000).
+
+After generating a map, use **Download PDF** for a server-rendered PDF, or **Save as PDF (print)** and choose *Save as PDF* in the browser print dialog.
+
+Production uses **two Gunicorn workers** so PDF generation (which loads the live map URL) does not deadlock a single worker.
 
 ## Run CLI Locally
 
@@ -36,6 +43,12 @@ Optional output folder:
 
 ```bash
 python hiking_optimizer_backend.py --gpx GPX_Files/OilCreek.gpx --weight-lbs 30 --max-speed-mph 2.8 --out-dir outputs
+```
+
+Merge tiny pace zones (e.g. a short steady blip between speed-up stretches) into neighbors; distance is along-trail meters (default `200`):
+
+```bash
+python hiking_optimizer_backend.py --gpx GPX_Files/Dollysods.gpx --weight-lbs 22 --max-speed-mph 3.2 --min-zone-run-m 350
 ```
 
 ## Output Files
@@ -52,9 +65,7 @@ This repo includes `render.yaml` for a Blueprint deploy.
 
 1. Push this repository to GitHub.
 2. In Render, create a new Blueprint and point it to the repo.
-3. Render will use:
-   - Build command: `pip install -r requirements.txt`
-   - Start command: `gunicorn app:app`
+3. Render will use the commands in `render.yaml` (`playwright install chromium` at build time and `gunicorn` with two workers at runtime).
 
 Render injects `PORT` automatically; `app.py` is already configured for that.
 
