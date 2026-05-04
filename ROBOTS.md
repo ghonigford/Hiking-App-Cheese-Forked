@@ -55,11 +55,7 @@ Do not bypass `run_backend_job` for product behavior unless you intentionally fo
 ├── pytest.ini
 ├── README.md                   # human install + usage
 └── ROBOTS.md                   # this file
-```
 
-Legacy: `ROBOT.md` may exist as a stub; prefer **ROBOTS.md** for agent context.
-
----
 
 ## Entry points (do not duplicate business logic)
 
