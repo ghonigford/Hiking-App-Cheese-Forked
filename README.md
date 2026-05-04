@@ -2,6 +2,8 @@
 
 This project analyzes a hiking route from a **GPX file** (track points with elevation), estimates **recommended pace per segment** using a small regression model, and produces **maps and tables** you can open in a browser or spreadsheet. It is available as a **Flask web app** and as a **command-line tool**.
 
+**Live app (Render):** https://hiking-app-cheese-forked.onrender.com/
+
 ---
 
 ## What you get
